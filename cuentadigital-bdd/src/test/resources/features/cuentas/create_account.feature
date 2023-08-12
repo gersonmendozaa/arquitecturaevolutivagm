@@ -11,3 +11,6 @@ Para hacer uso de los servicios del banco.
     When "Alexander" intenta crear la cuenta.
     Then Se crea exitosamente la cuenta en el core bancario para "Alexander" con saldo 0.
     And Se crea la cuenta en el banco central para "Alexander".
+    
+   
+

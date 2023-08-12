@@ -1,7 +1,9 @@
 package com.eat.cuentas.stepdefinitions;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 
 import com.eat.cuentas.domain.entidades.Cuenta;
+import com.eat.cuentas.domain.exceptions.BusinessException;
 import com.eat.cuentas.domain.puertos.ContratoRepository;
 import com.eat.cuentas.domain.puertos.CuentaRepository;
 import com.eat.cuentas.domain.puertos.ValidacionBiometricaRepository;
@@ -37,6 +40,8 @@ public class CreateAccountStepDefinitions {
 	@Mock
 	private ContratoRepository contratoRepository;
 	
+	private String errorMessage;
+	
 	@Before
 	public void setUp() {
 		cuentaService.setCuentaRepository(cuentaRepository);
@@ -57,33 +62,37 @@ public class CreateAccountStepDefinitions {
 	    when(cuentaRepository.consultarCuenta(nombreCliente)).thenReturn(null);
 	}
 	@When("{string} intenta crear la cuenta.")
-	public void intenta_crear_la_cuenta(String nombreCliente) throws Exception {
-		cuenta = cuentaService.crearCuenta(nombreCliente);
-		assertNotNull(cuenta);
-		//Verifica que se haya llamado el método
-		verify(cuentaRepository,times(1)).guardarBancoCentral(cuenta);
-		verify(cuentaRepository,times(1)).guardarCoreBancario(cuenta);
+	public void intenta_crear_la_cuenta(String nombreCliente) {
+		try {
+			cuenta = cuentaService.crearCuenta(nombreCliente);
+		} catch (BusinessException e) {
+			cuenta=null;
+			errorMessage=e.getMessage();
+		}
 	}
 	
 	@Then("Se crea exitosamente la cuenta en el core bancario para {string} con saldo {int}.")
-	public void se_crea_exitosamente_la_cuenta_en_el_core_bancario_para_con_saldo(String string, Integer int1) {
-		//Verifica que se haya creado la cuenta
-		assertEquals(new BigDecimal(0), cuenta.getSaldo());
-				
-		//Verifica que se llame el método del repository con la cuenta
+	public void se_crea_exitosamente_la_cuenta_en_el_core_bancario_para_con_saldo(String nombreCLiente, Integer saldo) {
+		//Verifica que se haya llamado el método
 		ArgumentCaptor<Cuenta> cuentaCaptor = ArgumentCaptor.forClass(Cuenta.class);
-		verify(cuentaRepository).guardarCoreBancario(cuentaCaptor.capture());
+		verify(cuentaRepository,times(1)).guardarCoreBancario(cuentaCaptor.capture());		
+		assertEquals(new BigDecimal(saldo), cuentaCaptor.getValue().getSaldo());
+		assertEquals(nombreCLiente, cuentaCaptor.getValue().getNombreCliente());
 	}
 	
 	@Then("Se crea la cuenta en el banco central para {string}.")
-	public void se_crea_la_cuenta_en_el_banco_central_para(String string) {
-		
+	public void se_crea_la_cuenta_en_el_banco_central_para(String nombreCLiente) {
 		//Verifica que se llame el método del repository con la cuenta
         ArgumentCaptor<Cuenta> cuentaCaptor = ArgumentCaptor.forClass(Cuenta.class);
         verify(cuentaRepository).guardarBancoCentral(cuentaCaptor.capture());
+		assertEquals(nombreCLiente, cuentaCaptor.getValue().getNombreCliente());
 	}
 
-	
+
+
+
+
+
 
 
 

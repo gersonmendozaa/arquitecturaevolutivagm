@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.eat.cuentas.domain.entidades.Cuenta;
+import com.eat.cuentas.domain.exceptions.BusinessException;
 import com.eat.cuentas.domain.puertos.ContratoRepository;
 import com.eat.cuentas.domain.puertos.CuentaRepository;
 import com.eat.cuentas.domain.puertos.ValidacionBiometricaRepository;
@@ -30,18 +31,20 @@ public class CuentaUseCase {
 		this.contratoRepository = contratoRepository;
 	}
 
-	public Cuenta crearCuenta(String nombreCliente) throws Exception {
+	public Cuenta crearCuenta(String nombreCliente)  {
 		Cuenta cuenta= cuentaRepository.consultarCuenta(nombreCliente);
-		boolean tieneValidacionBiometrica=validacionBiometricaRepository.tieneValidacionBiometrica(nombreCliente);
 		boolean tieneContratoFirmado=contratoRepository.tieneContrato(nombreCliente);
-		if(cuenta==null && tieneContratoFirmado && tieneValidacionBiometrica) {
-			cuenta=Cuenta.crear(nombreCliente);
-			cuentaRepository.guardarBancoCentral(cuenta);
-			cuentaRepository.guardarCoreBancario(cuenta);
-			return cuenta;
-		}else {
-			throw new Exception("Ya existe la cuenta o no cumple con los requisitos");
+		if(!tieneContratoFirmado) {
+			throw new BusinessException("No tiene el contrato firmado");
 
+		}else if(cuenta!=null) {
+			throw new BusinessException("La cuenta ya existe");
+
+		}else{
+			cuenta=Cuenta.crear(nombreCliente);
+			cuentaRepository.guardarCoreBancario(cuenta);
+			cuentaRepository.guardarBancoCentral(cuenta);
+			return cuenta;
 		}
 	}
 
