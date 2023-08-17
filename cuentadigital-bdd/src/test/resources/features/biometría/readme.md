@@ -1,0 +1,1 @@
+Aquí se documentan todos los features de biometría.

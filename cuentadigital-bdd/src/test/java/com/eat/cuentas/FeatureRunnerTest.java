@@ -11,5 +11,5 @@ import net.serenitybdd.cucumber.CucumberWithSerenity;
         , features = "src/test/resources/features"
 )
 @ActiveProfiles(value = "test")
-public class FeatureRunner {
+public class FeatureRunnerTest {
 }
