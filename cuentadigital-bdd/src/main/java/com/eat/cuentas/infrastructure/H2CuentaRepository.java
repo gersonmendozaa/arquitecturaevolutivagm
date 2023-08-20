@@ -32,4 +32,27 @@ public class H2CuentaRepository implements CuentaRepository{
 		return new Cuenta("Mauricio", new BigDecimal(7654));
 	}
 
+	@Override
+	public String obtenerOficinaAtencion(String ubicacion) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("Unimplemented method 'obtenerOficinaAtencion'");
+	}
+
+	@Override
+	public boolean verificoDatosUbicacionSonValidos(String ubicacion) {
+		boolean datosValidos = true;
+		return datosValidos;
+	}
+
+	@Override
+	public String obtenerOficinaAtencionPorUbicacion(String ubicacion) {
+		String oficina="oficina de atencion";
+		return oficina;
+	}
+
+	@Override
+	public void asociarOficinaAtencionCercana(String nombreCliente, String oficinaAtencion) {
+		// TODO Auto-generated method stub
+	}
+
 }

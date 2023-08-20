@@ -2,6 +2,7 @@ package com.eat.cuentas.stepdefinitions;
 
 import static org.junit.Assert.assertNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.booleanThat;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
@@ -27,7 +28,7 @@ import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
-@ContextConfiguration(classes = {CuentaUseCase.class})
+@ContextConfiguration(classes = { CuentaUseCase.class })
 public class CreateAccountStepDefinitions {
 
 	@Autowired
@@ -36,67 +37,89 @@ public class CreateAccountStepDefinitions {
 	private CuentaRepository cuentaRepository;
 	private Cuenta cuenta;
 	@Mock
-	private ValidacionBiometricaRepository validacionBiometrica; 
+	private ValidacionBiometricaRepository validacionBiometrica;
 	@Mock
 	private ContratoRepository contratoRepository;
-	
+
 	private String errorMessage;
-	
+
 	@Before
 	public void setUp() {
 		cuentaService.setCuentaRepository(cuentaRepository);
 		cuentaService.setContratoRepository(contratoRepository);
 		cuentaService.setValidacionBiometricaRepository(validacionBiometrica);
 	}
-	
+
 	@Given("{string} completó el proceso de validación biométrica")
 	public void completó_el_proceso_de_validación_biométrica(String nombreCliente) {
 	    when(validacionBiometrica.tieneValidacionBiometrica(nombreCliente)).thenReturn(true);
 	}
+
 	@Given("{string} firmó el contrato")
 	public void firmó_el_contrato(String nombreCliente) {
 	    when(contratoRepository.tieneContrato(nombreCliente)).thenReturn(true);
 	}
+
 	@Given("{string} No tiene cuenta creada previamente en el banco.")
 	public void no_tiene_cuenta_creada_previamente_en_el_banco(String nombreCliente) {
 	    when(cuentaRepository.consultarCuenta(nombreCliente)).thenReturn(null);
 	}
+
 	@When("{string} intenta crear la cuenta.")
 	public void intenta_crear_la_cuenta(String nombreCliente) {
 		try {
 			cuenta = cuentaService.crearCuenta(nombreCliente);
 		} catch (BusinessException e) {
-			cuenta=null;
-			errorMessage=e.getMessage();
+			cuenta = null;
+			errorMessage = e.getMessage();
 		}
 	}
-	
+
 	@Then("Se crea exitosamente la cuenta en el core bancario para {string} con saldo {int}.")
 	public void se_crea_exitosamente_la_cuenta_en_el_core_bancario_para_con_saldo(String nombreCLiente, Integer saldo) {
-		//Verifica que se haya llamado el método
+		// Verifica que se haya llamado el método
 		ArgumentCaptor<Cuenta> cuentaCaptor = ArgumentCaptor.forClass(Cuenta.class);
-		verify(cuentaRepository,times(1)).guardarCoreBancario(cuentaCaptor.capture());		
+		verify(cuentaRepository, times(1)).guardarCoreBancario(cuentaCaptor.capture());
 		assertEquals(new BigDecimal(saldo), cuentaCaptor.getValue().getSaldo());
 		assertEquals(nombreCLiente, cuentaCaptor.getValue().getNombreCliente());
 	}
-	
+
 	@Then("Se crea la cuenta en el banco central para {string}.")
 	public void se_crea_la_cuenta_en_el_banco_central_para(String nombreCLiente) {
-		//Verifica que se llame el método del repository con la cuenta
-        ArgumentCaptor<Cuenta> cuentaCaptor = ArgumentCaptor.forClass(Cuenta.class);
-        verify(cuentaRepository).guardarBancoCentral(cuentaCaptor.capture());
+		// Verifica que se llame el método del repository con la cuenta
+		ArgumentCaptor<Cuenta> cuentaCaptor = ArgumentCaptor.forClass(Cuenta.class);
+		verify(cuentaRepository).guardarBancoCentral(cuentaCaptor.capture());
 		assertEquals(nombreCLiente, cuentaCaptor.getValue().getNombreCliente());
 	}
 
+	@Given("{string} completó el proceso de creación de cuenta")
+	public void completó_el_proceso_de_creación_de_cuenta(String nombreCliente) {
+		Cuenta newCuenta = new Cuenta("Maria", new BigDecimal(9.1));
+		when(cuentaRepository.consultarCuenta(nombreCliente)).thenReturn(newCuenta);
+	}
 
+	@Given("los datos de {string} son validos")
+	public void los_datos_de_son_validos(String ubicacion) {
+		boolean datosValidos = true;
+		when(cuentaRepository.verificoDatosUbicacionSonValidos(ubicacion)).thenReturn(datosValidos);
+	}
+	@Given("se obtiene la oficina de atencion cercana a {string}")
+	public void se_obtiene_la_oficina_de_atencion_cercana_a(String ubicacion) {
+		String oficina="oficina de atencion";
+		when(cuentaRepository.obtenerOficinaAtencionPorUbicacion(ubicacion)).thenReturn(oficina);
+	}
 
+	@When("{string} intenta identificar una oficina de atencíon cercana a su {string}")
+	public void intenta_identificar_una_oficina_de_atencíon_cercana_a_su(String nombreCliente, String ubicacion) {
+		cuentaService.identificarOficinaAtencion(nombreCliente, ubicacion);
+	}
 
-
-
-
-
-
-
-	
-	
+	@Then("Se asocia exitosamente la {string} mas cercana para {string}.")
+	public void se_asocia_exitosamente_la_mas_cercana_para(String oficinaAtencion, String nombreCliente) {
+		String oficinaMock="oficina de atencion";
+		String clienteMock="Maria";
+		verify(cuentaRepository).asociarOficinaAtencionCercana(clienteMock,oficinaMock);
+		assertEquals(oficinaAtencion, oficinaMock);
+		assertEquals(nombreCliente, clienteMock);
+	}
 }

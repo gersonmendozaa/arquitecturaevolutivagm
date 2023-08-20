@@ -48,4 +48,22 @@ public class CuentaUseCase {
 		}
 	}
 
+	public void identificarOficinaAtencion(String nombreCliente, String ubicacion){
+		Cuenta cuenta= cuentaRepository.consultarCuenta(nombreCliente);
+		boolean datosValidos=cuentaRepository.verificoDatosUbicacionSonValidos(ubicacion);
+		String oficina=cuentaRepository.obtenerOficinaAtencionPorUbicacion(ubicacion);
+		if(cuenta==null) {
+			throw new BusinessException("No tiene cuenta");
+
+		}else if(!datosValidos) {
+			throw new BusinessException("Los datos de ubicación no son validos");
+
+		}else if(oficina==null) {
+			throw new BusinessException("No se obtuvo oficina cercana");
+
+		}else{
+			cuentaRepository.asociarOficinaAtencionCercana(nombreCliente, oficina);
+		}
+	}
+
 }
