@@ -5,8 +5,7 @@ Para hacer uso de los servicios del banco.
 
  
   Scenario: Asociar una oficina de atención a una cuenta ya creada
-    Given "Maria" completó el proceso de creación de cuenta 
-    And los datos de "ubicacion" son validos
+    Given "Maria" completó el proceso de creación de cuenta
     And se obtiene la oficina de atencion cercana a "ubicacion"
-    When "Maria" intenta identificar una oficina de atencíon cercana a su "ubicacion"
+    When "Maria" intenta asociar una oficina de atencion cercana a su "ubicacion"
     Then Se asocia exitosamente la "oficina de atencion" mas cercana para "Maria".

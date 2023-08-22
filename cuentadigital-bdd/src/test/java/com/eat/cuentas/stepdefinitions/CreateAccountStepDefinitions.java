@@ -20,6 +20,7 @@ import com.eat.cuentas.domain.entidades.Cuenta;
 import com.eat.cuentas.domain.exceptions.BusinessException;
 import com.eat.cuentas.domain.puertos.ContratoRepository;
 import com.eat.cuentas.domain.puertos.CuentaRepository;
+import com.eat.cuentas.domain.puertos.OficinaAtencionRepository;
 import com.eat.cuentas.domain.puertos.ValidacionBiometricaRepository;
 import com.eat.cuentas.domain.usecase.CuentaUseCase;
 
@@ -35,6 +36,8 @@ public class CreateAccountStepDefinitions {
 	private CuentaUseCase cuentaService;
 	@Mock
 	private CuentaRepository cuentaRepository;
+	@Mock
+	private OficinaAtencionRepository oficinaAtencionRepository;
 	private Cuenta cuenta;
 	@Mock
 	private ValidacionBiometricaRepository validacionBiometrica;
@@ -48,6 +51,7 @@ public class CreateAccountStepDefinitions {
 		cuentaService.setCuentaRepository(cuentaRepository);
 		cuentaService.setContratoRepository(contratoRepository);
 		cuentaService.setValidacionBiometricaRepository(validacionBiometrica);
+		cuentaService.setOficinaAtencionRepository(oficinaAtencionRepository);
 	}
 
 	@Given("{string} completó el proceso de validación biométrica")
@@ -98,20 +102,15 @@ public class CreateAccountStepDefinitions {
 		when(cuentaRepository.consultarCuenta(nombreCliente)).thenReturn(newCuenta);
 	}
 
-	@Given("los datos de {string} son validos")
-	public void los_datos_de_son_validos(String ubicacion) {
-		boolean datosValidos = true;
-		when(cuentaRepository.verificoDatosUbicacionSonValidos(ubicacion)).thenReturn(datosValidos);
-	}
 	@Given("se obtiene la oficina de atencion cercana a {string}")
 	public void se_obtiene_la_oficina_de_atencion_cercana_a(String ubicacion) {
 		String oficina="oficina de atencion";
-		when(cuentaRepository.obtenerOficinaAtencionPorUbicacion(ubicacion)).thenReturn(oficina);
+		when(oficinaAtencionRepository.obtenerOficinaAtencionPorUbicacion(ubicacion)).thenReturn(oficina);
 	}
 
-	@When("{string} intenta identificar una oficina de atencíon cercana a su {string}")
-	public void intenta_identificar_una_oficina_de_atencíon_cercana_a_su(String nombreCliente, String ubicacion) {
-		cuentaService.identificarOficinaAtencion(nombreCliente, ubicacion);
+	@When("{string} intenta asociar una oficina de atencion cercana a su {string}")
+	public void intenta_asociar_una_oficina_de_atencion_cercana_a_su(String nombreCliente, String ubicacion) {
+		cuentaService.asociarOficinaAtencionACuenta(nombreCliente, ubicacion);
 	}
 
 	@Then("Se asocia exitosamente la {string} mas cercana para {string}.")

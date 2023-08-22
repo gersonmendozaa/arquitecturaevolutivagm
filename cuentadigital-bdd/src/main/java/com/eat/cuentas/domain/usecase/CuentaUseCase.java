@@ -7,6 +7,7 @@ import com.eat.cuentas.domain.entidades.Cuenta;
 import com.eat.cuentas.domain.exceptions.BusinessException;
 import com.eat.cuentas.domain.puertos.ContratoRepository;
 import com.eat.cuentas.domain.puertos.CuentaRepository;
+import com.eat.cuentas.domain.puertos.OficinaAtencionRepository;
 import com.eat.cuentas.domain.puertos.ValidacionBiometricaRepository;
 
 @Service
@@ -14,6 +15,8 @@ public class CuentaUseCase {
 	
 	@Autowired(required = false)
 	private CuentaRepository cuentaRepository;
+	@Autowired(required = false)
+	private OficinaAtencionRepository oficinaAtencionRepository;
 	@Autowired(required = false)
 	private ValidacionBiometricaRepository validacionBiometricaRepository;
 	@Autowired(required = false)
@@ -29,6 +32,9 @@ public class CuentaUseCase {
 	
 	public void setContratoRepository(ContratoRepository contratoRepository) {
 		this.contratoRepository = contratoRepository;
+	}
+	public void setOficinaAtencionRepository(OficinaAtencionRepository oficinaAtencionRepository){
+		this.oficinaAtencionRepository= oficinaAtencionRepository;
 	}
 
 	public Cuenta crearCuenta(String nombreCliente)  {
@@ -48,15 +54,11 @@ public class CuentaUseCase {
 		}
 	}
 
-	public void identificarOficinaAtencion(String nombreCliente, String ubicacion){
+	public void asociarOficinaAtencionACuenta(String nombreCliente, String ubicacion){
 		Cuenta cuenta= cuentaRepository.consultarCuenta(nombreCliente);
-		boolean datosValidos=cuentaRepository.verificoDatosUbicacionSonValidos(ubicacion);
-		String oficina=cuentaRepository.obtenerOficinaAtencionPorUbicacion(ubicacion);
+		String oficina=oficinaAtencionRepository.obtenerOficinaAtencionPorUbicacion(ubicacion);
 		if(cuenta==null) {
 			throw new BusinessException("No tiene cuenta");
-
-		}else if(!datosValidos) {
-			throw new BusinessException("Los datos de ubicación no son validos");
 
 		}else if(oficina==null) {
 			throw new BusinessException("No se obtuvo oficina cercana");
